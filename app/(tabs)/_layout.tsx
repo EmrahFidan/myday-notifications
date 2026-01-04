@@ -6,10 +6,12 @@ import { Home, Settings, Plus } from 'lucide-react-native';
 import { useTheme } from '../../src/theme';
 import { useAuth } from '../../src/features/auth';
 import { Redirect } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabLayout() {
   const { colors, isDark } = useTheme();
   const { isAuthenticated, isLoading } = useAuth();
+  const insets = useSafeAreaInsets();
 
   // Auth yükleniyor
   if (isLoading) {
@@ -30,8 +32,8 @@ export default function TabLayout() {
           backgroundColor: colors.surface,
           borderTopColor: colors.border,
           borderTopWidth: 1,
-          height: 70,
-          paddingBottom: 10,
+          height: 70 + insets.bottom, // Tuş takımı için alan ekle
+          paddingBottom: insets.bottom + 10, // Alt tuş takımından uzak tut
           paddingTop: 10,
         },
         tabBarActiveTintColor: colors.primary,
