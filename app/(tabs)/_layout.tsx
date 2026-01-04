@@ -25,6 +25,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        tabBarHideOnKeyboard: true, // Klavye açıldığında navbar gizle
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopColor: colors.border,
