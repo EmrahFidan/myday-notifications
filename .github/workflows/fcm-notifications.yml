@@ -52,7 +52,7 @@ jobs:
               const now = Math.floor(Date.now() / 1000);
               const jwtClaimSet = Buffer.from(JSON.stringify({
                 iss: serviceAccount.client_email,
-                scope: 'https://www.googleapis.com/auth/firebase.messaging',
+                scope: 'https://www.googleapis.com/auth/firebase.messaging https://www.googleapis.com/auth/datastore',
                 aud: 'https://oauth2.googleapis.com/token',
                 exp: now + 3600,
                 iat: now

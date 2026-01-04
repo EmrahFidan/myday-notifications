@@ -19,6 +19,7 @@ import {
 import * as SplashScreen from 'expo-splash-screen';
 import { Toaster } from 'sonner-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider, useTheme } from '../src/theme';
 import { AuthProvider } from '../src/features/auth';
 import { TasksProvider } from '../src/features/tasks';
@@ -130,15 +131,17 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider>
-        <AuthProvider>
-          <TasksProvider>
-            <RootLayoutNav />
-          </TasksProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </GestureHandlerRootView>
+    <SafeAreaProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <ThemeProvider>
+          <AuthProvider>
+            <TasksProvider>
+              <RootLayoutNav />
+            </TasksProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 }
 
