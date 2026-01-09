@@ -169,10 +169,20 @@ function sendNotification(accessToken, tasks) {
 
     console.log('📋 Görev listesi hazırlandı:', lines);
 
-    // DATA PAYLOAD - React Native tarafında işlenecek
+    // Bildirim body'si - görev listesi
+    const notificationBody = lines.join('\n');
+    const notificationTitle = 'MYday - ' + incompleteTasks.length + ' gorev bekliyor';
+
+    // DATA + NOTIFICATION PAYLOAD
+    // notification: Arka planda sistem bildirimi gosterir
+    // data: On planda uygulama icerisinde islenir
     const message = {
       message: {
         token: fcmToken,
+        notification: {
+          title: notificationTitle,
+          body: notificationBody
+        },
         data: {
           tasks: JSON.stringify(lines),
           incompleteCount: String(incompleteTasks.length),
@@ -180,7 +190,14 @@ function sendNotification(accessToken, tasks) {
           type: 'task_update'
         },
         android: {
-          priority: 'high'
+          priority: 'high',
+          notification: {
+            channel_id: 'persistent',
+            notification_priority: 'PRIORITY_HIGH',
+            visibility: 'PUBLIC',
+            default_vibrate_timings: false,
+            default_light_settings: false
+          }
         }
       }
     };
