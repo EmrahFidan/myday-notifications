@@ -296,7 +296,7 @@ export default function HomeScreen() {
             styles.fab,
             {
               backgroundColor: colors.primary,
-              bottom: TAB_BAR_HEIGHT + insets.bottom + 16,
+              bottom: TAB_BAR_HEIGHT + insets.bottom - 10, // Navbar'a daha yakın
             }
           ]}
           onPress={() => router.push('/add-task')}
