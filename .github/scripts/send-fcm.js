@@ -193,8 +193,8 @@ function sendNotification(accessToken, tasks) {
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + accessToken,
-        'Content-Type': 'application/json',
-        'Content-Length': messageData.length
+        'Content-Type': 'application/json; charset=utf-8',
+        'Content-Length': Buffer.byteLength(messageData, 'utf8')
       }
     };
 
