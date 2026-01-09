@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "764877104156",
+    "project_id": "myday-cc640",
+    "storage_bucket": "myday-cc640.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:764877104156:android:9914a55992f1a7712a2bd9",
+        "android_client_info": {
+          "package_name": "com.myday.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAvFMlbZdSDvKpMb5t58R8pOGh6t1JOPmY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -2,7 +2,7 @@ const https = require('https');
 const fs = require('fs');
 
 // FCM token (kullanıcının cihazı)
-const fcmToken = 'foIORHNyQYia2MfGCLv70A:APA91bE0r4Z4ixIzHagV0dpLO-idqSoNZ7kyivaCBttT1_-0BNPPQzhyPOSi5nJZv_iSvM-tPB4_w5IvsdzlhCTMbbijva6IopFvw5aHa-9e5Nc9NY5b8sA';
+const fcmToken = 'cGv734geS62QENft3tKadA:APA91bGQY48epe2MQS-N1d_g1eOdMekKr7WpWbWbYwsHrTTkjnwRhgBn8LD4xPnm_7qpRnMUfDuNpqhl1_taWDGSA44_mirSBDJ11a_wtHYLIJuGV38RHmA';
 const userId = 'f4ocg6ZtopVXJj55eO4HBF66qnq1';
 const projectId = 'myday-cc640';
 
