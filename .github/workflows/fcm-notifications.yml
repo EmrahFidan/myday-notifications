@@ -186,12 +186,12 @@ jobs:
               // Görev listesini formatla (JSON array olarak gönder - güvenli)
               const lines = [];
               incompleteTasks.forEach(task => {
-                // Özel karakterleri escape et
-                const safeTitle = task.title.replace(/[\\"']/g, '\\$&').replace(/\n/g, ' ');
+                // Özel karakterleri temizle
+                const safeTitle = task.title.replace(/["\\]/g, '').replace(/\n/g, ' ').trim();
                 lines.push('☐ ' + safeTitle);
               });
               completedTasks.forEach(task => {
-                const safeTitle = task.title.replace(/[\\"']/g, '\\$&').replace(/\n/g, ' ');
+                const safeTitle = task.title.replace(/["\\]/g, '').replace(/\n/g, ' ').trim();
                 lines.push('☑ ' + safeTitle);
               });
 
