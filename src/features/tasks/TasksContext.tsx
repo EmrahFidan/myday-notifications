@@ -114,6 +114,39 @@ export const TasksProvider: React.FC<TasksProviderProps> = ({ children }) => {
     };
   }, [isAuthenticated, user, updatePersistentNotification]);
 
+  // 72 saat geçmiş tamamlanmış görevleri otomatik sil
+  useEffect(() => {
+    if (!isAuthenticated || !user) return;
+
+    const cleanupOldTasks = async () => {
+      const now = new Date();
+      const SEVENTY_TWO_HOURS = 72 * 60 * 60 * 1000; // 72 saat = milisaniye
+
+      const tasksToDelete = state.dailyTasks.filter((task) => {
+        if (!task.completed || !task.completedAt) return false;
+        const timeSinceCompletion = now.getTime() - task.completedAt.getTime();
+        return timeSinceCompletion >= SEVENTY_TWO_HOURS;
+      });
+
+      // Silme işlemini paralel yap
+      await Promise.all(
+        tasksToDelete.map((task) => taskService.deleteTask(user.uid, task.id))
+      );
+
+      if (tasksToDelete.length > 0) {
+        console.log(`🧹 ${tasksToDelete.length} eski görev temizlendi (72 saat geçti)`);
+      }
+    };
+
+    // İlk çalıştırma
+    cleanupOldTasks();
+
+    // Her 1 saatte bir kontrol et
+    const interval = setInterval(cleanupOldTasks, 60 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated, user, state.dailyTasks]);
+
   // App state değişikliklerini dinle
   // NOT: Uygulama ön plana geldiğinde bildirim güncellemesi YAPMA
   // çünkü Firestore listener zaten tetiklenecek ve updatePersistentNotification çağrılacak

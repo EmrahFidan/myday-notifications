@@ -11,8 +11,6 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   LogOut,
-  Bell,
-  Trash2,
   ChevronRight,
   User,
 } from 'lucide-react-native';
@@ -20,7 +18,6 @@ import { toast } from 'sonner-native';
 import { useTheme } from '../../src/theme';
 import { spacing, borderRadius } from '../../src/theme';
 import { useAuth } from '../../src/features/auth';
-import { useTasks } from '../../src/features/tasks';
 import { GlassCard } from '../../src/components/ui';
 import { notificationService } from '../../src/services/notificationService';
 
@@ -30,7 +27,6 @@ export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const { colors, typography } = useTheme();
   const { user, signOut } = useAuth();
-  const { clearCompleted, stats } = useTasks();
 
   const handleSignOut = async () => {
     Alert.alert(
@@ -48,33 +44,6 @@ export default function SettingsScreen() {
               toast.success('Çıkış yapıldı');
             } catch (error) {
               toast.error('Çıkış yapılırken hata oluştu');
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  const handleClearCompleted = async () => {
-    if (stats.completed === 0) {
-      toast.info('Temizlenecek görev yok');
-      return;
-    }
-
-    Alert.alert(
-      'Görevleri Temizle',
-      `${stats.completed} tamamlanmış görevi silmek istediğine emin misin?`,
-      [
-        { text: 'İptal', style: 'cancel' },
-        {
-          text: 'Temizle',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await clearCompleted();
-              toast.success('Tamamlanan görevler temizlendi');
-            } catch (error) {
-              toast.error('Bir hata oluştu');
             }
           },
         },
@@ -161,32 +130,6 @@ export default function SettingsScreen() {
               </Text>
             </View>
           </View>
-        </GlassCard>
-
-        {/* Notifications Section */}
-        <Text style={[styles.sectionTitle, typography.label, { color: colors.text.secondary }]}>
-          Bildirimler
-        </Text>
-        <GlassCard style={styles.section}>
-          <SettingsItem
-            icon={Bell}
-            title="Kalıcı Bildirim"
-            subtitle="Görevler bildirim çubuğunda görünür (Development build gerekli)"
-          />
-        </GlassCard>
-
-        {/* Data Section */}
-        <Text style={[styles.sectionTitle, typography.label, { color: colors.text.secondary }]}>
-          Veriler
-        </Text>
-        <GlassCard style={styles.section}>
-          <SettingsItem
-            icon={Trash2}
-            title="Tamamlananları Temizle"
-            subtitle={`${stats.completed} görev temizlenecek`}
-            onPress={handleClearCompleted}
-            destructive
-          />
         </GlassCard>
 
         {/* Account Section */}
