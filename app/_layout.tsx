@@ -90,8 +90,9 @@ export default function RootLayout() {
         console.log('📬 FCM data mesajı alındı:', notification);
 
         // Eğer data payload varsa, özel bildirim göster
-        if (notification.request.content.data?.taskList) {
-          const taskList = notification.request.content.data.taskList as string;
+        if (notification.request.content.data?.tasks) {
+          const tasks = JSON.parse(notification.request.content.data.tasks as string);
+          const taskList = tasks.join('\n'); // Array'i newline ile birleştir
           const incompleteCount = notification.request.content.data.incompleteCount as number;
 
           // Özel bildirim göster (tüm görevler görünür olacak)

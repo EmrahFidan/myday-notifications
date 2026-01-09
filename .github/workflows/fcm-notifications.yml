@@ -183,7 +183,7 @@ jobs:
                 return;
               }
 
-              // Görev listesini formatla
+              // Görev listesini formatla (JSON array olarak gönder - güvenli)
               const lines = [];
               incompleteTasks.forEach(task => {
                 lines.push('☐ ' + task.title);
@@ -192,17 +192,14 @@ jobs:
                 lines.push('☑ ' + task.title);
               });
 
-              const taskListBody = lines.join('\\\\n');
-
-              console.log('📋 Görev listesi hazırlandı:');
-              console.log(taskListBody);
+              console.log('📋 Görev listesi hazırlandı:', lines);
 
               // DATA PAYLOAD - React Native tarafında işlenecek
               const message = {
                 message: {
                   token: fcmToken,
                   data: {
-                    taskList: taskListBody,
+                    tasks: JSON.stringify(lines), // Array olarak gönder
                     incompleteCount: String(incompleteTasks.length),
                     totalCount: String(tasks.length),
                     type: 'task_update'
