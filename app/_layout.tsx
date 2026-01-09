@@ -30,11 +30,11 @@ import * as Notifications from 'expo-notifications';
 SplashScreen.preventAutoHideAsync();
 
 function RootLayoutNav() {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
 
   return (
     <>
-      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <StatusBar style="light" />
       <Stack
         screenOptions={{
           headerShown: false,

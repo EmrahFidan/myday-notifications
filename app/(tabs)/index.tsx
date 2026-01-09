@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Plus, GripVertical } from 'lucide-react-native';
+import { Plus, GripVertical, Trash2 } from 'lucide-react-native';
 import { toast } from 'sonner-native';
 import DraggableFlatList, {
   ScaleDecorator,

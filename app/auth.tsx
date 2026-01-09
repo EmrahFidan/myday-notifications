@@ -33,9 +33,9 @@ export default function AuthScreen() {
 
   // Giriş yapılmışsa ana sayfaya yönlendir (loading bitince)
   useEffect(() => {
-    console.log('🟢 [auth.tsx] Auth state:', { isAuthenticated, isLoading });
+    console.log('[auth] Auth state:', { isAuthenticated, isLoading });
     if (isAuthenticated && !isLoading) {
-      console.log('🟢 [auth.tsx] Redirect ediliyor: /(tabs)');
+      console.log('[auth] Redirecting to tabs');
       router.replace('/(tabs)');
     }
   }, [isAuthenticated, isLoading, router]);

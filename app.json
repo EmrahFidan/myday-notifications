@@ -33,10 +33,6 @@
         "POST_NOTIFICATIONS"
       ]
     },
-    "web": {
-      "favicon": "./assets/favicon.png",
-      "bundler": "metro"
-    },
     "plugins": [
       "expo-router",
       "expo-task-manager"

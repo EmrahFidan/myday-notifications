@@ -9,15 +9,15 @@ import { Redirect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabLayout() {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const { isAuthenticated, isLoading } = useAuth();
   const insets = useSafeAreaInsets();
 
-  console.log('🟡 [tabs/_layout.tsx] Auth state:', { isAuthenticated, isLoading });
+  console.log('[tabs/_layout] Auth state:', { isAuthenticated, isLoading });
 
   // Auth yükleniyor - loading göster
   if (isLoading) {
-    console.log('🟡 [tabs/_layout.tsx] Loading gösteriliyor');
+    console.log('[tabs/_layout] Loading');
     return (
       <View style={[styles.loading, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
@@ -27,11 +27,11 @@ export default function TabLayout() {
 
   // Giriş yapılmamış
   if (!isAuthenticated) {
-    console.log('🟡 [tabs/_layout.tsx] Auth yok, /auth'a redirect');
+    console.log('[tabs/_layout] Not authenticated, redirecting to auth');
     return <Redirect href="/auth" />;
   }
 
-  console.log('🟡 [tabs/_layout.tsx] Tabs gösteriliyor');
+  console.log('[tabs/_layout] Showing tabs');
 
   return (
     <Tabs

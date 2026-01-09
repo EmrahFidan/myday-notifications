@@ -32,9 +32,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Auth state listener
   useEffect(() => {
-    console.log('🔵 [AuthContext] onAuthStateChanged listener başlatıldı');
+    console.log('[AuthContext] Listener started');
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      console.log('🔵 [AuthContext] Auth state değişti:', user ? `User: ${user.email}` : 'Çıkış yapıldı');
+      console.log('[AuthContext] State changed:', user ? `User: ${user.email}` : 'Logged out');
       if (user) {
         await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ uid: user.uid }));
         setState({
@@ -43,7 +43,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           isAuthenticated: true,
           error: null,
         });
-        console.log('✅ [AuthContext] State güncellendi: isAuthenticated=true, isLoading=false');
+        console.log('[AuthContext] State updated: authenticated');
       } else {
         await AsyncStorage.removeItem(STORAGE_KEY);
         setState({
@@ -52,7 +52,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           isAuthenticated: false,
           error: null,
         });
-        console.log('✅ [AuthContext] State güncellendi: isAuthenticated=false, isLoading=false');
+        console.log('[AuthContext] State updated: not authenticated');
       }
     });
 
