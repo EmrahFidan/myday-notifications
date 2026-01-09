@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Plus, Trash2, GripVertical } from 'lucide-react-native';
+import { Plus, GripVertical } from 'lucide-react-native';
 import { toast } from 'sonner-native';
 import DraggableFlatList, {
   ScaleDecorator,
@@ -23,6 +23,18 @@ import { GlassCard, ProgressRing, Button } from '../../src/components/ui';
 
 const TAB_BAR_HEIGHT = 70;
 
+// Renkli görevler için palet
+const TASK_COLORS = [
+  '#8B5CF6', // Mor
+  '#3B82F6', // Mavi
+  '#10B981', // Yeşil
+  '#F59E0B', // Turuncu
+  '#EF4444', // Kırmızı
+  '#EC4899', // Pembe
+  '#14B8A6', // Turkuaz
+  '#F97316', // Koyu turuncu
+];
+
 export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -34,7 +46,6 @@ export default function HomeScreen() {
     isLoading,
     toggleTask,
     deleteTask,
-    clearCompleted,
     reorderTasks,
   } = useTasks();
 
@@ -77,16 +88,6 @@ export default function HomeScreen() {
     [deleteTask]
   );
 
-  const handleClearCompleted = useCallback(async () => {
-    if (stats.completed === 0) return;
-    try {
-      await clearCompleted();
-      toast.success('Tamamlanan görevler temizlendi');
-    } catch (error) {
-      toast.error('Bir hata oluştu');
-    }
-  }, [clearCompleted, stats.completed]);
-
   // Sürükle-bırak sonrası sıralamayı kaydet
   const handleDragEnd = useCallback(
     async ({ data }: { data: Task[] }) => {
@@ -109,6 +110,9 @@ export default function HomeScreen() {
   // Notion tarzı görev item'ı
   const renderTaskItem = useCallback(
     ({ item, drag, isActive }: RenderItemParams<Task>) => {
+      // Her göreve order'ına göre farklı renk
+      const taskColor = TASK_COLORS[item.order % TASK_COLORS.length];
+
       return (
         <ScaleDecorator>
           <TouchableOpacity
@@ -121,7 +125,9 @@ export default function HomeScreen() {
                 backgroundColor: isActive
                   ? colors.surfaceVariant
                   : colors.surface,
-                borderColor: isActive ? colors.primary : colors.border,
+                borderColor: isActive ? colors.primary : taskColor,
+                borderLeftWidth: 4,
+                borderLeftColor: taskColor,
                 opacity: item.completed ? 0.6 : 1,
               },
             ]}
@@ -141,8 +147,8 @@ export default function HomeScreen() {
               style={[
                 styles.checkbox,
                 {
-                  borderColor: item.completed ? colors.success : colors.border,
-                  backgroundColor: item.completed ? colors.success : 'transparent',
+                  borderColor: item.completed ? taskColor : taskColor,
+                  backgroundColor: item.completed ? taskColor : 'transparent',
                 },
               ]}
             >
@@ -250,19 +256,6 @@ export default function HomeScreen() {
             <ProgressRing progress={stats.completionRate} size={90} strokeWidth={10} />
           </View>
         </GlassCard>
-      )}
-
-      {/* Actions */}
-      {stats.completed > 0 && (
-        <TouchableOpacity
-          style={styles.clearButton}
-          onPress={handleClearCompleted}
-        >
-          <Trash2 size={16} color={colors.error} />
-          <Text style={[styles.clearButtonText, typography.bodySmall, { color: colors.error }]}>
-            Tamamlananları Temizle ({stats.completed})
-          </Text>
-        </TouchableOpacity>
       )}
 
       {/* Section Title with hint */}
