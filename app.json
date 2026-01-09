@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "MYday",
-    "slug": "MYday",
+    "slug": "myday-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -56,7 +56,24 @@
       "FIREBASE_MESSAGING_SENDER_ID": "764877104156",
       "FIREBASE_APP_ID": "1:764877104156:web:013ec954b28b097d2a2bd9",
       "eas": {
-        "projectId": "50e80de8-919f-4c8e-83d9-b2c711921d79"
+        "build": {
+          "experimental": {
+            "ios": {
+              "appExtensions": [
+                {
+                  "targetName": "OneSignalNotificationServiceExtension",
+                  "bundleIdentifier": "com.myday.app.OneSignalNotificationServiceExtension",
+                  "entitlements": {
+                    "com.apple.security.application-groups": [
+                      "group.com.myday.app.onesignal"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "projectId": "52ef0e59-0836-47db-aa4e-6456e8ba7685"
       },
       "router": {}
     },
