@@ -67,14 +67,7 @@ export const TasksProvider: React.FC<TasksProviderProps> = ({ children }) => {
 
   // Badge count güncelle (OneSignal kaldırıldı - Firestore'dan direkt okunuyor)
   const updatePersistentNotification = useCallback(async (tasks: Task[]) => {
-    const incompleteTasks = tasks.filter((t) => !t.completed);
-
-    // Sadece badge count güncelle
-    if (incompleteTasks.length === 0 && tasks.length > 0) {
-      await notificationService.updateBadgeCount(0);
-    } else if (incompleteTasks.length > 0) {
-      await notificationService.updateBadgeCount(incompleteTasks.length);
-    }
+    // Persistent notification kaldırıldı - fonksiyon boş
   }, []);
 
   // Görevleri dinle

@@ -13,8 +13,11 @@ export default function TabLayout() {
   const { isAuthenticated, isLoading } = useAuth();
   const insets = useSafeAreaInsets();
 
+  console.log('🟡 [tabs/_layout.tsx] Auth state:', { isAuthenticated, isLoading });
+
   // Auth yükleniyor - loading göster
   if (isLoading) {
+    console.log('🟡 [tabs/_layout.tsx] Loading gösteriliyor');
     return (
       <View style={[styles.loading, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
@@ -24,8 +27,11 @@ export default function TabLayout() {
 
   // Giriş yapılmamış
   if (!isAuthenticated) {
+    console.log('🟡 [tabs/_layout.tsx] Auth yok, /auth'a redirect');
     return <Redirect href="/auth" />;
   }
+
+  console.log('🟡 [tabs/_layout.tsx] Tabs gösteriliyor');
 
   return (
     <Tabs

@@ -32,7 +32,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Auth state listener
   useEffect(() => {
+    console.log('🔵 [AuthContext] onAuthStateChanged listener başlatıldı');
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log('🔵 [AuthContext] Auth state değişti:', user ? `User: ${user.email}` : 'Çıkış yapıldı');
       if (user) {
         await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ uid: user.uid }));
         setState({
@@ -41,6 +43,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           isAuthenticated: true,
           error: null,
         });
+        console.log('✅ [AuthContext] State güncellendi: isAuthenticated=true, isLoading=false');
       } else {
         await AsyncStorage.removeItem(STORAGE_KEY);
         setState({
@@ -49,6 +52,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           isAuthenticated: false,
           error: null,
         });
+        console.log('✅ [AuthContext] State güncellendi: isAuthenticated=false, isLoading=false');
       }
     });
 
@@ -73,6 +77,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setState((prev) => ({ ...prev, isLoading: true, error: null }));
       await signInWithEmailAndPassword(auth, email, password);
+      // onAuthStateChanged otomatik olarak isLoading: false yapacak
     } catch (error) {
       const message = getErrorMessage(error);
       setState((prev) => ({ ...prev, isLoading: false, error: message }));
