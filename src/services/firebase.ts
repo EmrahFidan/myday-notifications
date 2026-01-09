@@ -1,6 +1,6 @@
 // Firebase Configuration - MYday
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
-import { initializeAuth, getReactNativePersistence, Auth } from 'firebase/auth';
+import { initializeAuth, getAuth, getReactNativePersistence, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
@@ -28,9 +28,8 @@ if (getApps().length === 0) {
   });
 } else {
   app = getApps()[0];
-  auth = initializeAuth(app, {
-    persistence: getReactNativePersistence(AsyncStorage),
-  });
+  // Auth zaten var, tekrar initialize etme!
+  auth = getAuth(app);
 }
 
 db = getFirestore(app);

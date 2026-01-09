@@ -31,12 +31,12 @@ export default function AuthScreen() {
   const [displayName, setDisplayName] = useState('');
   const [localError, setLocalError] = useState<string | null>(null);
 
-  // Giriş yapılmışsa ana sayfaya yönlendir
+  // Giriş yapılmışsa ana sayfaya yönlendir (loading bitince)
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !isLoading) {
       router.replace('/(tabs)');
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, isLoading, router]);
 
   // Hata mesajını göster
   useEffect(() => {

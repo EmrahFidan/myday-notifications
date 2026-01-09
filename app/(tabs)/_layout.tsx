@@ -1,6 +1,7 @@
 // Tab Layout - MYday
 import React from 'react';
 import { Tabs } from 'expo-router';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { Home, Settings } from 'lucide-react-native';
 import { useTheme } from '../../src/theme';
 import { useAuth } from '../../src/features/auth';
@@ -12,9 +13,13 @@ export default function TabLayout() {
   const { isAuthenticated, isLoading } = useAuth();
   const insets = useSafeAreaInsets();
 
-  // Auth yükleniyor
+  // Auth yükleniyor - loading göster
   if (isLoading) {
-    return null;
+    return (
+      <View style={[styles.loading, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
   }
 
   // Giriş yapılmamış
@@ -60,3 +65,11 @@ export default function TabLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  loading: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
