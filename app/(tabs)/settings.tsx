@@ -1,4 +1,4 @@
-// Settings Screen - Sadece Dark Mode
+// Settings Screen
 import React from 'react';
 import {
   View,
@@ -7,14 +7,22 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Clipboard,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   LogOut,
   ChevronRight,
   User,
+  Bell,
+  Clock,
+  Trash2,
+  Info,
+  ListOrdered,
+  Copy,
 } from 'lucide-react-native';
 import { toast } from 'sonner-native';
+import * as Notifications from 'expo-notifications';
 import { useTheme } from '../../src/theme';
 import { spacing, borderRadius } from '../../src/theme';
 import { useAuth } from '../../src/features/auth';
@@ -30,25 +38,53 @@ export default function SettingsScreen() {
 
   const handleSignOut = async () => {
     Alert.alert(
-      'Çıkış Yap',
-      'Hesabından çıkış yapmak istediğine emin misin?',
+      'Cikis Yap',
+      'Hesabindan cikis yapmak istedigine emin misin?',
       [
-        { text: 'İptal', style: 'cancel' },
+        { text: 'Iptal', style: 'cancel' },
         {
-          text: 'Çıkış Yap',
+          text: 'Cikis Yap',
           style: 'destructive',
           onPress: async () => {
             try {
               await notificationService.clearAllNotifications();
               await signOut();
-              toast.success('Çıkış yapıldı');
+              toast.success('Cikis yapildi');
             } catch (error) {
-              toast.error('Çıkış yapılırken hata oluştu');
+              toast.error('Cikis yapilirken hata olustu');
             }
           },
         },
       ]
     );
+  };
+
+  const handleShowFCMToken = async () => {
+    try {
+      const token = await Notifications.getExpoPushTokenAsync({
+        projectId: 'e45c31af-f0d2-41ae-97f7-6ac38be1a3ac'
+      });
+
+      const fcmToken = token.data;
+
+      Alert.alert(
+        'FCM Token',
+        fcmToken,
+        [
+          { text: 'Iptal', style: 'cancel' },
+          {
+            text: 'Kopyala',
+            onPress: () => {
+              Clipboard.setString(fcmToken);
+              toast.success('Token kopyalandi');
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      toast.error('Token alinamadi');
+      console.error(error);
+    }
   };
 
   const SettingsItem = ({
@@ -123,13 +159,75 @@ export default function SettingsScreen() {
             </View>
             <View style={styles.profileInfo}>
               <Text style={[styles.profileName, typography.h3, { color: colors.text.primary }]}>
-                {user?.displayName || 'Kullanıcı'}
+                {user?.displayName || 'Kullanici'}
               </Text>
               <Text style={[styles.profileEmail, typography.bodySmall, { color: colors.text.secondary }]}>
                 {user?.email}
               </Text>
             </View>
           </View>
+        </GlassCard>
+
+        {/* Bildirim Ayarları */}
+        <Text style={[styles.sectionTitle, typography.label, { color: colors.text.secondary }]}>
+          Bildirimler
+        </Text>
+        <GlassCard style={styles.section}>
+          <SettingsItem
+            icon={Bell}
+            title="Bildirim Durumu"
+            subtitle="Aktif - Firebase Cloud Messaging"
+          />
+          <SettingsItem
+            icon={Clock}
+            title="Bildirim Sıklığı"
+            subtitle="Her 7 dakikada bir (GitHub Actions)"
+          />
+          <SettingsItem
+            icon={Copy}
+            title="FCM Token Göster"
+            subtitle="Token'ı göster ve kopyala"
+            onPress={handleShowFCMToken}
+          />
+        </GlassCard>
+
+        {/* Görev Ayarları */}
+        <Text style={[styles.sectionTitle, typography.label, { color: colors.text.secondary }]}>
+          Görev Yönetimi
+        </Text>
+        <GlassCard style={styles.section}>
+          <SettingsItem
+            icon={Trash2}
+            title="Otomatik Silme"
+            subtitle="Tamamlanmış görevler 48 saat sonra silinir"
+          />
+          <SettingsItem
+            icon={ListOrdered}
+            title="Yeni Görev Pozisyonu"
+            subtitle="En üste eklenir"
+          />
+        </GlassCard>
+
+        {/* Uygulama Bilgileri */}
+        <Text style={[styles.sectionTitle, typography.label, { color: colors.text.secondary }]}>
+          Uygulama Bilgileri
+        </Text>
+        <GlassCard style={styles.section}>
+          <SettingsItem
+            icon={Info}
+            title="Versiyon"
+            subtitle="1.0.0"
+          />
+          <SettingsItem
+            icon={Info}
+            title="Platform"
+            subtitle="React Native + Expo"
+          />
+          <SettingsItem
+            icon={Info}
+            title="Backend"
+            subtitle="Firebase (Firestore + FCM)"
+          />
         </GlassCard>
 
         {/* Account Section */}
@@ -139,7 +237,7 @@ export default function SettingsScreen() {
         <GlassCard style={styles.section}>
           <SettingsItem
             icon={LogOut}
-            title="Çıkış Yap"
+            title="Cikis Yap"
             onPress={handleSignOut}
             destructive
           />
