@@ -29,6 +29,9 @@ import * as Notifications from 'expo-notifications';
 // Splash screen'i göster
 SplashScreen.preventAutoHideAsync();
 
+// Sabit bildirim ID - aynı bildirim sürekli güncellenir
+const PERSISTENT_NOTIFICATION_ID = 'myday-task-notification';
+
 function RootLayoutNav() {
   const { colors } = useTheme();
 
@@ -92,22 +95,33 @@ export default function RootLayout() {
         // Eğer data payload varsa, özel bildirim göster
         if (notification.request.content.data?.tasks) {
           const tasks = JSON.parse(notification.request.content.data.tasks as string);
-          const taskList = tasks.join('\n'); // Array'i newline ile birleştir
+          const taskList = tasks.join('\n');
           const incompleteCount = notification.request.content.data.incompleteCount as number;
 
-          // Özel bildirim göster (tüm görevler görünür olacak)
-          Notifications.scheduleNotificationAsync({
-            content: {
-              title: `MYday (${incompleteCount} görev)`,
-              body: taskList,
-              sound: false,
-              priority: Notifications.AndroidNotificationPriority.HIGH,
-              ...(Platform.OS === 'android' && {
-                channelId: 'persistent',
-              }),
-            },
-            trigger: null, // Hemen göster
-          }).catch(console.error);
+          // Aynı ID ile bildirim göster - eskisi otomatik replace edilir
+          (async () => {
+            try {
+              // Önce bu ID'deki bildirimi dismiss et
+              await Notifications.dismissNotificationAsync(PERSISTENT_NOTIFICATION_ID);
+              
+              // Sonra aynı ID ile yeni bildirim göster
+              await Notifications.scheduleNotificationAsync({
+                identifier: PERSISTENT_NOTIFICATION_ID,
+                content: {
+                  title: `MYday (${incompleteCount} görev)`,
+                  body: taskList,
+                  sound: false,
+                  priority: Notifications.AndroidNotificationPriority.HIGH,
+                  ...(Platform.OS === 'android' && {
+                    channelId: 'persistent',
+                  }),
+                },
+                trigger: null,
+              });
+            } catch (error) {
+              console.error('Bildirim gösterme hatası:', error);
+            }
+          })();
         }
       });
 
