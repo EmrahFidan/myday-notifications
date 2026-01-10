@@ -173,11 +173,16 @@ function sendNotification(accessToken, tasks) {
     const notificationBody = lines.join('\n');
     const notificationTitle = 'MYday - ' + incompleteTasks.length + ' gorev bekliyor';
 
-    // SADECE DATA PAYLOAD (notification yok)
-    // App içindeki listener (app/_layout.tsx) bildirimi gösterecek
+    // NOTIFICATION + DATA PAYLOAD
+    // App açık: Listener custom bildirim gösterir (notification ignore edilir)
+    // App kapalı: FCM notification gösterilir
     const message = {
       message: {
         token: fcmToken,
+        notification: {
+          title: notificationTitle,
+          body: notificationBody
+        },
         data: {
           tasks: JSON.stringify(lines),
           incompleteCount: String(incompleteTasks.length),
@@ -185,7 +190,11 @@ function sendNotification(accessToken, tasks) {
           type: 'task_update'
         },
         android: {
-          priority: 'high'
+          priority: 'high',
+          notification: {
+            channel_id: 'persistent',
+            tag: 'myday_task_notification'
+          }
         }
       }
     };
