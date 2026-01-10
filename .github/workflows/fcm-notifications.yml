@@ -2,8 +2,8 @@ name: FCM Task Notifications (Data Payload)
 
 on:
   schedule:
-    # Her 5 dakikada bir çalış (UTC saat dilimi)
-    - cron: '*/5 * * * *'
+    # Her 7 dakikada bir çalış (UTC saat dilimi)
+    - cron: '*/7 * * * *'
   workflow_dispatch: # Manuel tetikleme için
 
 jobs:
