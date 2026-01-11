@@ -88,14 +88,45 @@ export default function RootLayout() {
       // Bildirim izinlerini iste
       notificationService.requestPermissions().catch(console.error);
 
-      // Foreground'dayken de bildirimleri göster
-      Notifications.setNotificationHandler({
-        handleNotification: async () => ({
-          shouldShowAlert: true,
-          shouldPlaySound: false,
-          shouldSetBadge: false,
-        }),
+      // FCM data mesajlarını dinle (foreground & background)
+      const foregroundSubscription = Notifications.addNotificationReceivedListener((notification) => {
+        console.log('📬 FCM data mesajı alındı:', notification);
+
+        // Data payload'dan bildirim oluştur
+        if (notification.request.content.data?.title) {
+          const title = notification.request.content.data.title as string;
+          const body = notification.request.content.data.body as string;
+
+          // PERSISTENT_NOTIFICATION_ID ile bildirim göster - eskisi otomatik replace edilir
+          (async () => {
+            try {
+              // Önce bu ID'deki bildirimi dismiss et
+              await Notifications.dismissNotificationAsync(PERSISTENT_NOTIFICATION_ID);
+
+              // Sonra aynı ID ile yeni bildirim göster
+              await Notifications.scheduleNotificationAsync({
+                identifier: PERSISTENT_NOTIFICATION_ID,
+                content: {
+                  title: title,
+                  body: body,
+                  sound: false,
+                  priority: Notifications.AndroidNotificationPriority.HIGH,
+                  ...(Platform.OS === 'android' && {
+                    channelId: 'persistent',
+                  }),
+                },
+                trigger: null,
+              });
+            } catch (error) {
+              console.error('Bildirim gösterme hatası:', error);
+            }
+          })();
+        }
       });
+
+      return () => {
+        foregroundSubscription.remove();
+      };
     }
   }, []);
 
