@@ -94,22 +94,21 @@ export default function RootLayout() {
 
         // Eğer data payload varsa, özel bildirim göster
         if (notification.request.content.data?.tasks) {
-          const tasks = JSON.parse(notification.request.content.data.tasks as string);
-          const taskList = tasks.join('\n');
-          const incompleteCount = notification.request.content.data.incompleteCount as number;
+          const title = notification.request.content.data.title as string;
+          const body = notification.request.content.data.body as string;
 
           // Aynı ID ile bildirim göster - eskisi otomatik replace edilir
           (async () => {
             try {
               // Önce bu ID'deki bildirimi dismiss et
               await Notifications.dismissNotificationAsync(PERSISTENT_NOTIFICATION_ID);
-              
+
               // Sonra aynı ID ile yeni bildirim göster
               await Notifications.scheduleNotificationAsync({
                 identifier: PERSISTENT_NOTIFICATION_ID,
                 content: {
-                  title: `MYday - ${incompleteCount} görev bekliyor`,
-                  body: taskList,
+                  title: title,
+                  body: body,
                   sound: false,
                   priority: Notifications.AndroidNotificationPriority.HIGH,
                   ...(Platform.OS === 'android' && {
