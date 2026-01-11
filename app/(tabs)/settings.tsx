@@ -61,8 +61,10 @@ export default function SettingsScreen() {
 
   const handleShowFCMToken = async () => {
     try {
-      // Native FCM token al
-      const token = await Notifications.getDevicePushTokenAsync();
+      // Expo Push Token al
+      const token = await Notifications.getExpoPushTokenAsync({
+        projectId: 'f9465de2-a5fa-414a-9d65-25f0f836e120'
+      });
 
       const fcmToken = token.data;
 
