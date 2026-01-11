@@ -88,6 +88,15 @@ export default function RootLayout() {
       // Bildirim izinlerini iste
       notificationService.requestPermissions().catch(console.error);
 
+      // FCM otomatik bildirimlerini engelle - sadece bizim local notification'ımız gösterilsin
+      Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowAlert: false,  // FCM otomatik bildirimi gösterme!
+          shouldPlaySound: false,
+          shouldSetBadge: false,
+        }),
+      });
+
       // FCM data mesajlarını dinle (foreground & background)
       const foregroundSubscription = Notifications.addNotificationReceivedListener((notification) => {
         console.log('📬 FCM data mesajı alındı:', notification);
