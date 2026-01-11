@@ -9,7 +9,9 @@ import {
   updateProfile,
 } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { auth } from '../../services/firebase';
+import * as Notifications from 'expo-notifications';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../../services/firebase';
 import { AuthContextType, AuthState } from '../../types/auth';
 
 const STORAGE_KEY = '@myday_auth';
@@ -25,6 +27,26 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
   children: ReactNode;
+}
+
+// FCM Token'ı Firestore'a kaydet
+async function saveFCMToken(userId: string) {
+  try {
+    const token = await Notifications.getExpoPushTokenAsync({
+      projectId: 'e45c31af-f0d2-41ae-97f7-6ac38be1a3ac'
+    });
+
+    const fcmToken = token.data;
+    console.log('[AuthContext] FCM Token:', fcmToken.substring(0, 20) + '...');
+
+    // Firestore'da users/{userId} dokümanına fcmToken ekle
+    const userDocRef = doc(db, 'users', userId);
+    await setDoc(userDocRef, { fcmToken }, { merge: true });
+
+    console.log('[AuthContext] FCM Token Firestore\'a kaydedildi');
+  } catch (error) {
+    console.error('[AuthContext] FCM Token kaydetme hatası:', error);
+  }
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
@@ -44,6 +66,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           error: null,
         });
         console.log('[AuthContext] State updated: authenticated');
+
+        // FCM Token'ı Firestore'a kaydet
+        await saveFCMToken(user.uid);
       } else {
         await AsyncStorage.removeItem(STORAGE_KEY);
         setState({
