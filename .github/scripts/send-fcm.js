@@ -213,13 +213,11 @@ function sendNotification(accessToken, fcmToken, tasks) {
     const notificationBody = lines.join('\n');
     const notificationTitle = 'MYday - ' + incompleteTasks.length + ' gorev bekliyor';
 
-    // FCM v1 API FORMAT - SADECE DATA (notification yok, custom listener kullan)
+    // FCM v1 API FORMAT - SADECE DATA (custom listener kullanır)
     const message = {
       message: {
         token: fcmToken,
         data: {
-          title: notificationTitle,
-          body: notificationBody,
           tasks: JSON.stringify(lines),
           incompleteCount: String(incompleteTasks.length),
           totalCount: String(tasks.length),

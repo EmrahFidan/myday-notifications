@@ -108,7 +108,7 @@ export default function RootLayout() {
               await Notifications.scheduleNotificationAsync({
                 identifier: PERSISTENT_NOTIFICATION_ID,
                 content: {
-                  title: `MYday (${incompleteCount} görev)`,
+                  title: `MYday - ${incompleteCount} görev bekliyor`,
                   body: taskList,
                   sound: false,
                   priority: Notifications.AndroidNotificationPriority.HIGH,
