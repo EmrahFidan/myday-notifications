@@ -183,20 +183,28 @@ function sendNotification(accessToken, fcmToken, tasks) {
     const notificationBody = lines.join('\n');
     const notificationTitle = 'MYday (' + incompleteTasks.length + ' görev)';
 
-    // FCM v1 API FORMAT - DATA ONLY (app local notification oluşturacak)
+    // FCM v1 API FORMAT - notification payload ile (Android otomatik gösterir)
+    // tag: 'myday-tasks' ile aynı tag'lı bildirimler birbirini replace eder
     const message = {
       message: {
         token: fcmToken,
-        data: {
+        notification: {
           title: notificationTitle,
-          body: notificationBody,
+          body: notificationBody
+        },
+        android: {
+          priority: 'high',
+          notification: {
+            tag: 'myday-tasks',
+            channelId: 'default',
+            notificationCount: incompleteTasks.length
+          }
+        },
+        data: {
           tasks: JSON.stringify(lines),
           incompleteCount: String(incompleteTasks.length),
           totalCount: String(tasks.length),
           type: 'task_update'
-        },
-        android: {
-          priority: 'high'
         }
       }
     };

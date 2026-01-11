@@ -2,7 +2,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { View, ActivityIndicator, StyleSheet, Platform } from 'react-native';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import {
   useFonts,
   Inter_400Regular,
@@ -28,9 +28,6 @@ import * as Notifications from 'expo-notifications';
 
 // Splash screen'i göster
 SplashScreen.preventAutoHideAsync();
-
-// Sabit bildirim ID - aynı bildirim sürekli güncellenir
-const PERSISTENT_NOTIFICATION_ID = 'myday-task-notification';
 
 function RootLayoutNav() {
   const { colors } = useTheme();
@@ -80,7 +77,7 @@ export default function RootLayout() {
     Poppins_700Bold,
   });
 
-  // Bildirim izinlerini iste ve FCM mesajlarını dinle
+  // Bildirim izinlerini iste
   useEffect(() => {
     if (!notificationInitialized.current) {
       notificationInitialized.current = true;
@@ -88,54 +85,14 @@ export default function RootLayout() {
       // Bildirim izinlerini iste
       notificationService.requestPermissions().catch(console.error);
 
-      // FCM otomatik bildirimlerini engelle - sadece bizim local notification'ımız gösterilsin
+      // FCM bildirimleri geldiğinde göster (foreground'da da)
       Notifications.setNotificationHandler({
         handleNotification: async () => ({
-          shouldShowAlert: false,  // FCM otomatik bildirimi gösterme!
+          shouldShowAlert: true,
           shouldPlaySound: false,
-          shouldSetBadge: false,
+          shouldSetBadge: true,
         }),
       });
-
-      // FCM data mesajlarını dinle (foreground & background)
-      const foregroundSubscription = Notifications.addNotificationReceivedListener((notification) => {
-        console.log('📬 FCM data mesajı alındı:', notification);
-
-        // Data payload'dan bildirim oluştur
-        if (notification.request.content.data?.title) {
-          const title = notification.request.content.data.title as string;
-          const body = notification.request.content.data.body as string;
-
-          // PERSISTENT_NOTIFICATION_ID ile bildirim göster - eskisi otomatik replace edilir
-          (async () => {
-            try {
-              // Önce bu ID'deki bildirimi dismiss et
-              await Notifications.dismissNotificationAsync(PERSISTENT_NOTIFICATION_ID);
-
-              // Sonra aynı ID ile yeni bildirim göster
-              await Notifications.scheduleNotificationAsync({
-                identifier: PERSISTENT_NOTIFICATION_ID,
-                content: {
-                  title: title,
-                  body: body,
-                  sound: false,
-                  priority: Notifications.AndroidNotificationPriority.HIGH,
-                  ...(Platform.OS === 'android' && {
-                    channelId: 'persistent',
-                  }),
-                },
-                trigger: null,
-              });
-            } catch (error) {
-              console.error('Bildirim gösterme hatası:', error);
-            }
-          })();
-        }
-      });
-
-      return () => {
-        foregroundSubscription.remove();
-      };
     }
   }, []);
 
