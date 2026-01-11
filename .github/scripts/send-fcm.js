@@ -201,7 +201,8 @@ function sendNotification(accessToken, fcmToken, tasks) {
           priority: 'high',
           notification: {
             sound: 'default',
-            channelId: 'persistent'
+            channelId: 'persistent',
+            tag: 'myday-task-notification'
           }
         }
       }
