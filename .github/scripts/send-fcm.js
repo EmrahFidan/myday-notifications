@@ -70,46 +70,16 @@ function getAccessToken() {
   });
 }
 
-// Firestore'dan FCM Token al
-function getFCMToken(accessToken) {
-  return new Promise((resolve, reject) => {
-    const options = {
-      hostname: 'firestore.googleapis.com',
-      path: '/v1/projects/' + projectId + '/databases/(default)/documents/users/' + userId,
-      method: 'GET',
-      headers: {
-        'Authorization': 'Bearer ' + accessToken,
-        'Content-Type': 'application/json'
-      }
-    };
+// Hardcoded FCM Token'ı al (GitHub Secret'tan)
+function getFCMToken() {
+  const fcmToken = process.env.FCM_TOKEN;
 
-    console.log('📱 Firestore\'dan FCM token okunuyor...');
+  if (!fcmToken) {
+    throw new Error('❌ FCM_TOKEN environment variable bulunamadı! GitHub Secret olarak ekleyin.');
+  }
 
-    const req = https.request(options, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        if (res.statusCode === 200) {
-          const response = JSON.parse(data);
-          const fcmToken = response.fields?.fcmToken?.stringValue;
-
-          if (!fcmToken) {
-            console.error('❌ FCM token Firestore\'da bulunamadı!');
-            reject(new Error('FCM token not found in Firestore'));
-          } else {
-            console.log('✅ FCM Token alındı:', fcmToken.substring(0, 20) + '...');
-            resolve(fcmToken);
-          }
-        } else {
-          console.error('❌ Firestore hatası:', res.statusCode, data);
-          reject(new Error('FCM token okunamadı: ' + data));
-        }
-      });
-    });
-
-    req.on('error', reject);
-    req.end();
-  });
+  console.log('✅ FCM Token alındı (hardcoded):', fcmToken.substring(0, 20) + '...');
+  return fcmToken;
 }
 
 // Firestore'dan görevleri oku
@@ -178,8 +148,8 @@ function getTasks(accessToken) {
   });
 }
 
-// EXPO PUSH API bildirim gönder
-function sendNotification(expoPushToken, tasks) {
+// FCM v1 API bildirim gönder
+function sendNotification(accessToken, fcmToken, tasks) {
   return new Promise((resolve, reject) => {
     const incompleteTasks = tasks.filter(t => !t.completed);
     const completedTasks = tasks.filter(t => t.completed);
@@ -211,38 +181,46 @@ function sendNotification(expoPushToken, tasks) {
 
     // Bildirim body'si - görev listesi
     const notificationBody = lines.join('\n');
-    const notificationTitle = 'MYday - ' + incompleteTasks.length + ' gorev bekliyor';
+    const notificationTitle = 'MYday (' + incompleteTasks.length + ' görev)';
 
-    // EXPO PUSH API FORMAT
+    // FCM v1 API FORMAT
     const message = {
-      to: expoPushToken,
-      title: notificationTitle,
-      body: notificationBody,
-      data: {
-        tasks: JSON.stringify(lines),
-        incompleteCount: String(incompleteTasks.length),
-        totalCount: String(tasks.length),
-        type: 'task_update'
-      },
-      priority: 'high',
-      sound: 'default'
+      message: {
+        token: fcmToken,
+        notification: {
+          title: notificationTitle,
+          body: notificationBody
+        },
+        data: {
+          tasks: JSON.stringify(lines),
+          incompleteCount: String(incompleteTasks.length),
+          totalCount: String(tasks.length),
+          type: 'task_update'
+        },
+        android: {
+          priority: 'high',
+          notification: {
+            sound: 'default',
+            channelId: 'persistent'
+          }
+        }
+      }
     };
 
     const messageData = JSON.stringify(message);
 
     const options = {
-      hostname: 'exp.host',
-      path: '/--/api/v2/push/send',
+      hostname: 'fcm.googleapis.com',
+      path: '/v1/projects/' + projectId + '/messages:send',
       method: 'POST',
       headers: {
-        'Accept': 'application/json',
-        'Accept-Encoding': 'gzip, deflate',
+        'Authorization': 'Bearer ' + accessToken,
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(messageData, 'utf8')
       }
     };
 
-    console.log('📤 Expo Push bildirim gönderiliyor...');
+    console.log('📤 FCM v1 bildirim gönderiliyor...');
 
     const req = https.request(options, (res) => {
       let data = '';
@@ -253,9 +231,9 @@ function sendNotification(expoPushToken, tasks) {
           console.log('📊 Response:', data);
           resolve(data);
         } else {
-          console.error('❌ Expo Push hatası:', res.statusCode);
+          console.error('❌ FCM hatası:', res.statusCode);
           console.error('📄 Response:', data);
-          reject(new Error('Expo Push gönderim hatası: ' + data));
+          reject(new Error('FCM gönderim hatası: ' + data));
         }
       });
     });
@@ -274,9 +252,9 @@ function sendNotification(expoPushToken, tasks) {
 (async () => {
   try {
     const accessToken = await getAccessToken();
-    const expoPushToken = await getFCMToken(accessToken);
+    const fcmToken = getFCMToken(); // Hardcoded token (GitHub Secret)
     const tasks = await getTasks(accessToken);
-    await sendNotification(expoPushToken, tasks);
+    await sendNotification(accessToken, fcmToken, tasks);
     console.log('✨ İşlem tamamlandı!');
   } catch (error) {
     console.error('💥 Hata:', error.message);
