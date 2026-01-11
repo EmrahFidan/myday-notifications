@@ -22,4 +22,5 @@ jobs:
       - name: Send FCM Notifications
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          FCM_TOKEN: ${{ secrets.FCM_TOKEN }}
         run: node .github/scripts/send-fcm.js
