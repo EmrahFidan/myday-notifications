@@ -37,13 +37,7 @@
     "plugins": [
       "expo-router",
       "expo-task-manager",
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/notification-icon.png",
-          "color": "#9333EA"
-        }
-      ]
+      "expo-notifications"
     ],
     "extra": {
       "FIREBASE_API_KEY": "AIzaSyBDgBxiX3vLuVtpuf2r2uVIOh3-FWoOQEA",
