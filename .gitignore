@@ -39,4 +39,6 @@ yarn-error.*
 # generated native folders
 /ios
 /android
-myday-cc640-firebase-adminsdk-fbsvc-ef698d0e9f.json
+
+# Firebase service account (NEVER commit these!)
+*firebase-adminsdk*.json
