@@ -1,0 +1,55 @@
+        {/* Bildirim Ayarları */}
+        <Text style={[styles.sectionTitle, typography.label, { color: colors.text.secondary }]}>
+          Bildirimler
+        </Text>
+        <GlassCard style={styles.section}>
+          <SettingsItem
+            icon={Bell}
+            title="Bildirim Durumu"
+            subtitle="Aktif - Firebase Cloud Messaging"
+          />
+          <SettingsItem
+            icon={Clock}
+            title="Bildirim Sıklığı"
+            subtitle="Her 15 dakikada bir (GitHub Actions)"
+          />
+        </GlassCard>
+
+        {/* Görev Ayarları */}
+        <Text style={[styles.sectionTitle, typography.label, { color: colors.text.secondary }]}>
+          Görev Yönetimi
+        </Text>
+        <GlassCard style={styles.section}>
+          <SettingsItem
+            icon={Trash2}
+            title="Otomatik Silme"
+            subtitle="Tamamlanmış görevler 48 saat sonra silinir"
+          />
+          <SettingsItem
+            icon={ListOrdered}
+            title="Yeni Görev Pozisyonu"
+            subtitle="En üste eklenir"
+          />
+        </GlassCard>
+
+        {/* Uygulama Bilgileri */}
+        <Text style={[styles.sectionTitle, typography.label, { color: colors.text.secondary }]}>
+          Uygulama Bilgileri
+        </Text>
+        <GlassCard style={styles.section}>
+          <SettingsItem
+            icon={Info}
+            title="Versiyon"
+            subtitle="1.0.0"
+          />
+          <SettingsItem
+            icon={Info}
+            title="Platform"
+            subtitle="React Native + Expo"
+          />
+          <SettingsItem
+            icon={Info}
+            title="Backend"
+            subtitle="Firebase (Firestore + FCM)"
+          />
+        </GlassCard>

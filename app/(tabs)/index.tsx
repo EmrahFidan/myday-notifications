@@ -1,14 +1,15 @@
 // Home Screen - Görev Listesi (Notion tarzı sürükle-bırak)
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
+  Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Plus, GripVertical, Trash2 } from 'lucide-react-native';
+import { Plus, GripVertical, Trash2, AlertTriangle } from 'lucide-react-native';
 import { toast } from 'sonner-native';
 import DraggableFlatList, {
   ScaleDecorator,
@@ -19,7 +20,7 @@ import { useTheme } from '../../src/theme';
 import { spacing, borderRadius } from '../../src/theme';
 import { useAuth } from '../../src/features/auth';
 import { useTasks, Task } from '../../src/features/tasks';
-import { GlassCard, ProgressRing, Button } from '../../src/components/ui';
+import { GlassCard, Button } from '../../src/components/ui';
 
 const TAB_BAR_HEIGHT = 70;
 
@@ -42,23 +43,23 @@ export default function HomeScreen() {
   const { user } = useAuth();
   const {
     dailyTasks,
-    stats,
     isLoading,
     toggleTask,
     deleteTask,
     reorderTasks,
   } = useTasks();
 
-  // Görevleri sırala: tamamlanmayanlar önce (order'a göre), tamamlananlar sona
-  const sortedTasks = useMemo(() => {
-    return [...dailyTasks].sort((a, b) => {
-      // Önce tamamlanma durumuna göre (tamamlanmayanlar önce)
-      if (a.completed !== b.completed) {
-        return a.completed ? 1 : -1;
-      }
-      // Sonra order'a göre
-      return a.order - b.order;
-    });
+  // Silme onay modalı için state
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+
+  // Gorevleri ayır: Tamamlanmayanlar ve tamamlananlar (ayrı listeler)
+  const incompleteTasks = useMemo(() => {
+    return dailyTasks.filter((t) => !t.completed).sort((a, b) => a.order - b.order);
+  }, [dailyTasks]);
+
+  const completedTasks = useMemo(() => {
+    return dailyTasks.filter((t) => t.completed).sort((a, b) => a.order - b.order);
   }, [dailyTasks]);
 
   const handleToggleTask = useCallback(
@@ -76,22 +77,37 @@ export default function HomeScreen() {
     [toggleTask, dailyTasks]
   );
 
-  const handleDeleteTask = useCallback(
-    async (taskId: string) => {
-      try {
-        await deleteTask(taskId);
-        toast.success('Görev silindi');
-      } catch (error) {
-        toast.error('Silinemedi');
-      }
-    },
-    [deleteTask]
-  );
+  // Silme onay modalını aç
+  const confirmDeleteTask = useCallback((task: Task) => {
+    setTaskToDelete(task);
+    setDeleteModalVisible(true);
+  }, []);
 
-  // Sürükle-bırak sonrası sıralamayı kaydet
+  // Silme işlemini gerçekleştir
+  const handleConfirmDelete = useCallback(async () => {
+    if (!taskToDelete) return;
+    try {
+      await deleteTask(taskToDelete.id);
+      toast.success('Görev silindi');
+    } catch (error) {
+      toast.error('Silinemedi');
+    } finally {
+      setDeleteModalVisible(false);
+      setTaskToDelete(null);
+    }
+  }, [deleteTask, taskToDelete]);
+
+  // Silme işlemini iptal et
+  const handleCancelDelete = useCallback(() => {
+    setDeleteModalVisible(false);
+    setTaskToDelete(null);
+  }, []);
+
+  // Sürükle-bırak sonrası sıralamayı kaydet (tamamlanmayanlar bariyeri)
   const handleDragEnd = useCallback(
     async ({ data }: { data: Task[] }) => {
       try {
+        // Tamamlanmamışların yeni sıralamasını kaydet
         await reorderTasks(data);
       } catch (error) {
         toast.error('Sıralama kaydedilemedi');
@@ -100,25 +116,20 @@ export default function HomeScreen() {
     [reorderTasks]
   );
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Günaydın';
-    if (hour < 18) return 'İyi günler';
-    return 'İyi akşamlar';
-  };
 
   // Notion tarzı görev item'ı
   const renderTaskItem = useCallback(
     ({ item, drag, isActive }: RenderItemParams<Task>) => {
       // Her göreve order'ına göre farklı renk
       const taskColor = TASK_COLORS[item.order % TASK_COLORS.length];
+      const isCompleted = item.completed;
 
       return (
         <ScaleDecorator>
           <TouchableOpacity
             activeOpacity={0.9}
-            onLongPress={drag}
-            disabled={isActive}
+            onLongPress={isCompleted ? undefined : drag}
+            disabled={isActive || isCompleted}
             style={[
               styles.taskItem,
               {
@@ -128,18 +139,22 @@ export default function HomeScreen() {
                 borderColor: isActive ? colors.primary : taskColor,
                 borderLeftWidth: 4,
                 borderLeftColor: taskColor,
-                opacity: item.completed ? 0.6 : 1,
+                opacity: isCompleted ? 0.5 : 1,
               },
             ]}
           >
-            {/* Drag Handle */}
-            <TouchableOpacity
-              onPressIn={drag}
-              style={styles.dragHandle}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <GripVertical size={18} color={colors.text.muted} />
-            </TouchableOpacity>
+            {/* Drag Handle - sadece tamamlanmamışlar için */}
+            {!isCompleted ? (
+              <TouchableOpacity
+                onPressIn={drag}
+                style={styles.dragHandle}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <GripVertical size={18} color={colors.text.muted} />
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.dragHandlePlaceholder} />
+            )}
 
             {/* Checkbox */}
             <TouchableOpacity
@@ -147,12 +162,12 @@ export default function HomeScreen() {
               style={[
                 styles.checkbox,
                 {
-                  borderColor: item.completed ? taskColor : taskColor,
-                  backgroundColor: item.completed ? taskColor : 'transparent',
+                  borderColor: taskColor,
+                  backgroundColor: isCompleted ? taskColor : 'transparent',
                 },
               ]}
             >
-              {item.completed && (
+              {isCompleted && (
                 <Text style={styles.checkmark}>✓</Text>
               )}
             </TouchableOpacity>
@@ -165,7 +180,7 @@ export default function HomeScreen() {
                   typography.body,
                   {
                     color: colors.text.primary,
-                    textDecorationLine: item.completed ? 'line-through' : 'none',
+                    textDecorationLine: isCompleted ? 'line-through' : 'none',
                   },
                 ]}
                 numberOfLines={2}
@@ -188,7 +203,7 @@ export default function HomeScreen() {
 
             {/* Delete Button */}
             <TouchableOpacity
-              onPress={() => handleDeleteTask(item.id)}
+              onPress={() => confirmDeleteTask(item)}
               style={styles.deleteButton}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
@@ -198,7 +213,7 @@ export default function HomeScreen() {
         </ScaleDecorator>
       );
     },
-    [colors, typography, handleToggleTask, handleDeleteTask]
+    [colors, typography, handleToggleTask, confirmDeleteTask]
   );
 
   const renderEmptyState = () => (
@@ -219,44 +234,12 @@ export default function HomeScreen() {
 
   const renderHeader = () => (
     <View style={styles.header}>
-      {/* Greeting */}
+      {/* User Name */}
       <View style={styles.greetingRow}>
-        <View>
-          <Text style={[styles.greeting, typography.bodySmall, { color: colors.text.secondary }]}>
-            {getGreeting()},
-          </Text>
-          <Text style={[styles.userName, typography.h2, { color: colors.text.primary }]}>
-            {user?.displayName || 'Kullanıcı'}
-          </Text>
-        </View>
+        <Text style={[styles.userName, typography.h2, { color: colors.text.primary }]}>
+          {user?.displayName || 'Kullanici'}
+        </Text>
       </View>
-
-      {/* Stats Card */}
-      {dailyTasks.length > 0 && (
-        <GlassCard variant="accent" style={styles.statsCard}>
-          <View style={styles.statsContent}>
-            <View style={styles.statsText}>
-              <Text style={[styles.statsTitle, typography.h3, { color: colors.text.primary }]}>
-                Bugünün İlerlemesi
-              </Text>
-              <Text style={[styles.statsSubtitle, typography.body, { color: colors.text.secondary }]}>
-                {stats.completed} / {stats.total} görev tamamlandı
-              </Text>
-              {stats.completed > 0 && stats.completed < stats.total && (
-                <Text style={[styles.motivationText, typography.bodySmall, { color: colors.primary }]}>
-                  Harika gidiyorsun! 💪
-                </Text>
-              )}
-              {stats.completed === stats.total && stats.total > 0 && (
-                <Text style={[styles.motivationText, typography.bodySmall, { color: colors.success }]}>
-                  Tüm görevler tamamlandı! 🎉
-                </Text>
-              )}
-            </View>
-            <ProgressRing progress={stats.completionRate} size={90} strokeWidth={10} />
-          </View>
-        </GlassCard>
-      )}
 
       {/* Section Title with hint */}
       {dailyTasks.length > 0 && (
@@ -272,16 +255,108 @@ export default function HomeScreen() {
     </View>
   );
 
+  // Tamamlanmış görevleri göster (footer - bariyer altı)
+  const renderFooter = () => {
+    if (completedTasks.length === 0) return null;
+
+    return (
+      <View style={styles.completedSection}>
+        <View style={styles.completedDivider}>
+          <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+          <Text style={[styles.dividerText, typography.caption, { color: colors.text.muted }]}>
+            Tamamlanan Görevler
+          </Text>
+          <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+        </View>
+        {completedTasks.map((item) => {
+          const taskColor = TASK_COLORS[item.order % TASK_COLORS.length];
+          return (
+            <TouchableOpacity
+              key={item.id}
+              activeOpacity={0.9}
+              style={[
+                styles.taskItem,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: taskColor,
+                  borderLeftWidth: 4,
+                  borderLeftColor: taskColor,
+                  opacity: 0.5,
+                },
+              ]}
+            >
+              {/* Boş alan (drag handle yerine) */}
+              <View style={styles.dragHandlePlaceholder} />
+
+              {/* Checkbox */}
+              <TouchableOpacity
+                onPress={() => handleToggleTask(item.id)}
+                style={[
+                  styles.checkbox,
+                  {
+                    borderColor: taskColor,
+                    backgroundColor: taskColor,
+                  },
+                ]}
+              >
+                <Text style={styles.checkmark}>✓</Text>
+              </TouchableOpacity>
+
+              {/* Task Content */}
+              <View style={styles.taskContent}>
+                <Text
+                  style={[
+                    styles.taskTitle,
+                    typography.body,
+                    {
+                      color: colors.text.primary,
+                      textDecorationLine: 'line-through',
+                    },
+                  ]}
+                  numberOfLines={2}
+                >
+                  {item.title}
+                </Text>
+                {item.description && (
+                  <Text
+                    style={[
+                      styles.taskDescription,
+                      typography.bodySmall,
+                      { color: colors.text.muted },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {item.description}
+                  </Text>
+                )}
+              </View>
+
+              {/* Delete Button */}
+              <TouchableOpacity
+                onPress={() => confirmDeleteTask(item)}
+                style={styles.deleteButton}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Trash2 size={16} color={colors.error} />
+              </TouchableOpacity>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    );
+  };
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top }]}>
         <DraggableFlatList
-          data={sortedTasks}
+          data={incompleteTasks}
           keyExtractor={(item) => item.id}
           renderItem={renderTaskItem}
           onDragEnd={handleDragEnd}
           ListHeaderComponent={renderHeader}
           ListEmptyComponent={!isLoading ? renderEmptyState : null}
+          ListFooterComponent={renderFooter}
           contentContainerStyle={[
             styles.listContent,
             { paddingBottom: TAB_BAR_HEIGHT + insets.bottom + 20 }
@@ -290,20 +365,60 @@ export default function HomeScreen() {
           activationDistance={10}
         />
 
-        {/* FAB */}
+        {/* FAB - Sag ust */}
         <TouchableOpacity
           style={[
             styles.fab,
             {
               backgroundColor: colors.primary,
-              bottom: TAB_BAR_HEIGHT + insets.bottom - 10, // Navbar'a daha yakın
+              top: insets.top + 10,
             }
           ]}
           onPress={() => router.push('/add-task')}
           activeOpacity={0.8}
         >
-          <Plus size={28} color="#FFFFFF" strokeWidth={2.5} />
+          <Plus size={24} color="#FFFFFF" strokeWidth={2.5} />
         </TouchableOpacity>
+
+        {/* Silme Onay Modalı */}
+        <Modal
+          visible={deleteModalVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={handleCancelDelete}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
+              <View style={[styles.modalIconContainer, { backgroundColor: colors.error + '20' }]}>
+                <AlertTriangle size={32} color={colors.error} />
+              </View>
+              <Text style={[styles.modalTitle, typography.h3, { color: colors.text.primary }]}>
+                Görevi Sil
+              </Text>
+              <Text style={[styles.modalMessage, typography.body, { color: colors.text.secondary }]}>
+                "{taskToDelete?.title}" görevini silmek istediğine emin misin?
+              </Text>
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.cancelButton, { borderColor: colors.border }]}
+                  onPress={handleCancelDelete}
+                >
+                  <Text style={[styles.modalButtonText, typography.bodyMedium, { color: colors.text.primary }]}>
+                    Vazgeç
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.deleteConfirmButton, { backgroundColor: colors.error }]}
+                  onPress={handleConfirmDelete}
+                >
+                  <Text style={[styles.modalButtonText, typography.bodyMedium, { color: '#FFFFFF' }]}>
+                    Sil
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </View>
     </GestureHandlerRootView>
   );
@@ -327,26 +442,6 @@ const styles = StyleSheet.create({
   },
   greeting: {},
   userName: {},
-  statsCard: {
-    marginBottom: spacing.lg,
-  },
-  statsContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  statsText: {
-    flex: 1,
-    marginRight: spacing.lg,
-  },
-  statsTitle: {
-    marginBottom: spacing.xs,
-  },
-  statsSubtitle: {},
-  motivationText: {
-    marginTop: spacing.sm,
-    fontWeight: '600',
-  },
   clearButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -392,6 +487,10 @@ const styles = StyleSheet.create({
     padding: spacing.xs,
     marginRight: spacing.xs,
   },
+  dragHandlePlaceholder: {
+    width: 26,
+    marginRight: spacing.xs,
+  },
   checkbox: {
     width: 22,
     height: 22,
@@ -421,10 +520,10 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    right: spacing.xl,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    right: spacing.lg,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#8B5CF6',
@@ -432,5 +531,73 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 8,
     elevation: 8,
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.xl,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 340,
+    borderRadius: borderRadius.xl,
+    padding: spacing.xl,
+    alignItems: 'center',
+  },
+  modalIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  modalTitle: {
+    marginBottom: spacing.sm,
+    textAlign: 'center',
+  },
+  modalMessage: {
+    textAlign: 'center',
+    marginBottom: spacing.xl,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    width: '100%',
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelButton: {
+    borderWidth: 1,
+  },
+  deleteConfirmButton: {},
+  modalButtonText: {
+    fontWeight: '600',
+  },
+  // Completed Section Styles (Bariyer Altı)
+  completedSection: {
+    marginTop: spacing.xl,
+  },
+  completedDivider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+    gap: spacing.md,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+  },
+  dividerText: {
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
 });

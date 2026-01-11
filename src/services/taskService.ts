@@ -48,8 +48,8 @@ class TaskService {
       q,
       (snapshot) => {
         const tasks: Task[] = [];
-        snapshot.forEach((doc) => {
-          const data = { id: doc.id, ...doc.data() } as TaskFirestore;
+        snapshot.forEach((docItem) => {
+          const data = { id: docItem.id, ...docItem.data() } as TaskFirestore;
           tasks.push(convertToTask(data));
         });
         onUpdate(tasks);
@@ -85,8 +85,8 @@ class TaskService {
       q,
       (snapshot) => {
         const tasks: Task[] = [];
-        snapshot.forEach((doc) => {
-          const data = { id: doc.id, ...doc.data() } as TaskFirestore;
+        snapshot.forEach((docItem) => {
+          const data = { id: docItem.id, ...docItem.data() } as TaskFirestore;
           tasks.push(convertToTask(data));
         });
         // Order'a göre sırala
@@ -99,14 +99,22 @@ class TaskService {
     return unsubscribe;
   }
 
-  // Yeni görev ekle
+  // Yeni görev ekle (en üste)
   async addTask(userId: string, input: CreateTaskInput): Promise<string> {
     const tasksRef = this.getTasksRef(userId);
 
-    // En yüksek order değerini bul
-    const q = query(tasksRef, orderBy('order', 'desc'));
+    // Tamamlanmamış görevlerin order'ını 1 artır (yeni görev en üste gelecek)
+    const q = query(tasksRef, where('completed', '==', false));
     const snapshot = await getDocs(q);
-    const maxOrder = snapshot.empty ? 0 : (snapshot.docs[0].data().order || 0);
+
+    if (!snapshot.empty) {
+      const batch = writeBatch(db);
+      snapshot.docs.forEach((docItem) => {
+        const currentOrder = docItem.data().order || 0;
+        batch.update(docItem.ref, { order: currentOrder + 1 });
+      });
+      await batch.commit();
+    }
 
     const now = Timestamp.now();
     const taskData = {
@@ -121,7 +129,7 @@ class TaskService {
       createdAt: now,
       updatedAt: now,
       completedAt: null,
-      order: maxOrder + 1,
+      order: 0, // Yeni görev her zaman en üstte
     };
 
     const docRef = await addDoc(tasksRef, taskData);
@@ -173,8 +181,8 @@ class TaskService {
     const snapshot = await getDocs(q);
 
     const batch = writeBatch(db);
-    snapshot.docs.forEach((doc) => {
-      batch.delete(doc.ref);
+    snapshot.docs.forEach((docItem) => {
+      batch.delete(docItem.ref);
     });
 
     await batch.commit();

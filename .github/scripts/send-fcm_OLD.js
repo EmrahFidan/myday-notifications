@@ -1,11 +1,13 @@
 const https = require('https');
 const fs = require('fs');
 
-// User ID ve Project ID
+// FCM token (kullanıcının cihazı)
+const fcmToken = 'cGv734geS62QENft3tKadA:APA91bGQY48epe2MQS-N1d_g1eOdMekKr7WpWbWbYwsHrTTkjnwRhgBn8LD4xPnm_7qpRnMUfDuNpqhl1_taWDGSA44_mirSBDJ11a_wtHYLIJuGV38RHmA';
 const userId = 'f4ocg6ZtopVXJj55eO4HBF66qnq1';
 const projectId = 'myday-cc640';
 
 console.log('🚀 FCM Data Payload Bildirimi başlatılıyor...');
+console.log('📱 FCM Token:', fcmToken.substring(0, 20) + '...');
 console.log('👤 User ID:', userId);
 
 // Service Account JSON'ı parse et
@@ -66,48 +68,6 @@ function getAccessToken() {
 
     req.on('error', reject);
     req.write(postData);
-    req.end();
-  });
-}
-
-// Firestore'dan FCM Token al
-function getFCMToken(accessToken) {
-  return new Promise((resolve, reject) => {
-    const options = {
-      hostname: 'firestore.googleapis.com',
-      path: '/v1/projects/' + projectId + '/databases/(default)/documents/users/' + userId,
-      method: 'GET',
-      headers: {
-        'Authorization': 'Bearer ' + accessToken,
-        'Content-Type': 'application/json'
-      }
-    };
-
-    console.log('📱 Firestore\'dan FCM token okunuyor...');
-
-    const req = https.request(options, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        if (res.statusCode === 200) {
-          const response = JSON.parse(data);
-          const fcmToken = response.fields?.fcmToken?.stringValue;
-
-          if (!fcmToken) {
-            console.error('❌ FCM token Firestore\'da bulunamadı!');
-            reject(new Error('FCM token not found in Firestore'));
-          } else {
-            console.log('✅ FCM Token alındı:', fcmToken.substring(0, 20) + '...');
-            resolve(fcmToken);
-          }
-        } else {
-          console.error('❌ Firestore hatası:', res.statusCode, data);
-          reject(new Error('FCM token okunamadı: ' + data));
-        }
-      });
-    });
-
-    req.on('error', reject);
     req.end();
   });
 }
@@ -178,8 +138,8 @@ function getTasks(accessToken) {
   });
 }
 
-// FCM v1 API bildirim gönder
-function sendNotification(accessToken, fcmToken, tasks) {
+// FCM DATA PAYLOAD bildirim gönder
+function sendNotification(accessToken, tasks) {
   return new Promise((resolve, reject) => {
     const incompleteTasks = tasks.filter(t => !t.completed);
     const completedTasks = tasks.filter(t => t.completed);
@@ -213,7 +173,9 @@ function sendNotification(accessToken, fcmToken, tasks) {
     const notificationBody = lines.join('\n');
     const notificationTitle = 'MYday - ' + incompleteTasks.length + ' gorev bekliyor';
 
-    // FCM v1 API FORMAT (Native FCM Token)
+    // NOTIFICATION + DATA PAYLOAD
+    // App açık: Listener custom bildirim gösterir (notification ignore edilir)
+    // App kapalı: FCM notification gösterilir
     const message = {
       message: {
         token: fcmToken,
@@ -250,14 +212,14 @@ function sendNotification(accessToken, fcmToken, tasks) {
       }
     };
 
-    console.log('📤 FCM v1 bildirim gönderiliyor...');
+    console.log('📤 FCM data payload gönderiliyor...');
 
     const req = https.request(options, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
         if (res.statusCode === 200) {
-          console.log('✅ Bildirim başarıyla gönderildi!');
+          console.log('✅ Data payload başarıyla gönderildi!');
           console.log('📊 Response:', data);
           resolve(data);
         } else {
@@ -282,9 +244,8 @@ function sendNotification(accessToken, fcmToken, tasks) {
 (async () => {
   try {
     const accessToken = await getAccessToken();
-    const fcmToken = await getFCMToken(accessToken);
     const tasks = await getTasks(accessToken);
-    await sendNotification(accessToken, fcmToken, tasks);
+    await sendNotification(accessToken, tasks);
     console.log('✨ İşlem tamamlandı!');
   } catch (error) {
     console.error('💥 Hata:', error.message);
