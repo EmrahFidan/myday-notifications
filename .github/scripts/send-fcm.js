@@ -213,26 +213,20 @@ function sendNotification(accessToken, fcmToken, tasks) {
     const notificationBody = lines.join('\n');
     const notificationTitle = 'MYday - ' + incompleteTasks.length + ' gorev bekliyor';
 
-    // FCM v1 API FORMAT (Native FCM Token)
+    // FCM v1 API FORMAT - SADECE DATA (notification yok, custom listener kullan)
     const message = {
       message: {
         token: fcmToken,
-        notification: {
-          title: notificationTitle,
-          body: notificationBody
-        },
         data: {
+          title: notificationTitle,
+          body: notificationBody,
           tasks: JSON.stringify(lines),
           incompleteCount: String(incompleteTasks.length),
           totalCount: String(tasks.length),
           type: 'task_update'
         },
         android: {
-          priority: 'high',
-          notification: {
-            channel_id: 'persistent',
-            tag: 'myday_task_notification'
-          }
+          priority: 'high'
         }
       }
     };
