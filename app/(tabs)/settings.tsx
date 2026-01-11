@@ -81,8 +81,9 @@ export default function SettingsScreen() {
         ]
       );
     } catch (error) {
-      toast.error('Token alinamadi');
-      console.error(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      Alert.alert('Token Hatası', errorMessage);
+      console.error('FCM Token Error:', error);
     }
   };
 

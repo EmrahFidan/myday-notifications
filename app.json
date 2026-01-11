@@ -46,11 +46,11 @@
       "FIREBASE_STORAGE_BUCKET": "myday-cc640.firebasestorage.app",
       "FIREBASE_MESSAGING_SENDER_ID": "764877104156",
       "FIREBASE_APP_ID": "1:764877104156:web:013ec954b28b097d2a2bd9",
+      "router": {},
       "eas": {
-        "projectId": "52ef0e59-0836-47db-aa4e-6456e8ba7685"
-      },
-      "router": {}
+        "projectId": "f9465de2-a5fa-414a-9d65-25f0f836e120"
+      }
     },
-    "owner": "emrah-fdnnn"
+    "owner": "emrah-fdnn"
   }
 }

@@ -44,7 +44,8 @@ async function saveFCMToken(userId: string) {
 
     console.log('[AuthContext] FCM Token Firestore\'a kaydedildi');
   } catch (error) {
-    console.error('[AuthContext] FCM Token kaydetme hatası:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('[AuthContext] FCM Token kaydetme hatası:', errorMessage, error);
   }
 }
 
