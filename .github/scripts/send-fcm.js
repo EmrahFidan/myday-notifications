@@ -106,23 +106,15 @@ function getTasks(accessToken) {
           const tasks = [];
 
           if (response.documents) {
-            const today = new Date().toISOString().split('T')[0];
-
             response.documents.forEach(doc => {
               const fields = doc.fields;
-              const createdAt = fields.createdAt?.timestampValue || '';
-              const taskDate = createdAt.split('T')[0];
-
-              // Sadece bugünün görevlerini al
-              if (taskDate === today) {
-                tasks.push({
-                  id: doc.name.split('/').pop(),
-                  title: fields.title?.stringValue || '',
-                  completed: fields.completed?.booleanValue || false,
-                  order: parseInt(fields.order?.integerValue || '0'),
-                  createdAt: createdAt
-                });
-              }
+              tasks.push({
+                id: doc.name.split('/').pop(),
+                title: fields.title?.stringValue || '',
+                completed: fields.completed?.booleanValue || false,
+                order: parseInt(fields.order?.integerValue || '0'),
+                createdAt: fields.createdAt?.timestampValue || ''
+              });
             });
 
             // Önce tamamlanmamışlar, sonra tamamlanmışlar - her ikisi de order'a göre
