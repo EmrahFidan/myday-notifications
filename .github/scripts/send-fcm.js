@@ -193,7 +193,11 @@ function sendNotification(accessToken, fcmToken, tasks) {
           type: 'task_update'
         },
         android: {
-          priority: 'high'
+          priority: 'high',
+          notification: {
+            tag: 'myday-task-notification'
+          },
+          collapseKey: 'myday-tasks'
         }
       }
     };
