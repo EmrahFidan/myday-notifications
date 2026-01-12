@@ -188,8 +188,9 @@ function sendNotification(accessToken, fcmToken, tasks) {
           priority: 'high',
           notification: {
             tag: 'myday-tasks',
-            channelId: 'default',
-            notificationCount: incompleteTasks.length
+            notificationCount: incompleteTasks.length,
+            defaultSound: true,
+            defaultVibrateTimings: true
           }
         },
         data: {
