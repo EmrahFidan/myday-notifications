@@ -188,7 +188,7 @@ function sendNotification(accessToken, fcmToken, tasks) {
           priority: 'high',
           notification: {
             tag: 'myday-tasks',
-            channelId: 'myday-tasks',
+            channelId: 'persistent',
             notificationCount: incompleteTasks.length
           }
         },

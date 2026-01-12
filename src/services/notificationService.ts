@@ -9,15 +9,7 @@ const NOTIFICATION_ID = 'myday-task-notification';
 const SCHEDULING_LOCK_KEY = '@myday_scheduling_lock';
 const LAST_TASK_HASH_KEY = '@myday_last_task_hash';
 
-// Notification ayarları
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldPlaySound: false,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+// Notification handler _layout.tsx'te ayarlanıyor - burada çakışma yaratma
 
 class NotificationService {
   private isInitialized = false;
