@@ -77,7 +77,7 @@ export default function RootLayout() {
     Poppins_700Bold,
   });
 
-  // Bildirim izinlerini iste ve channel oluştur
+  // Bildirim izinlerini iste ve FCM dinleyici kur
   useEffect(() => {
     if (!notificationInitialized.current) {
       notificationInitialized.current = true;
@@ -85,14 +85,47 @@ export default function RootLayout() {
       // Bildirim izinlerini iste
       notificationService.requestPermissions().catch(console.error);
 
-      // FCM bildirimleri için handler
-      // shouldShowAlert: true = Expo foreground'da bildirimi gösterir
+      // Handler: Bildirim geldiğinde ÖNCE ESKİLERİ SİL, SONRA YENİSİNİ GÖSTER
       Notifications.setNotificationHandler({
-        handleNotification: async () => ({
-          shouldShowAlert: true,
-          shouldPlaySound: false,
-          shouldSetBadge: true,
-        }),
+        handleNotification: async (notification) => {
+          const data = notification.request.content.data;
+
+          // FCM task_update mesajı mı?
+          if (data?.type === 'task_update') {
+            console.log('📬 FCM mesajı alındı, önce eski bildirimler siliniyor...');
+
+            // 1. Önce mevcut TÜM bildirimleri sil
+            await Notifications.dismissAllNotificationsAsync();
+
+            // 2. Sonra yeni bildirimi göster (sabit ID)
+            await Notifications.scheduleNotificationAsync({
+              identifier: 'myday-persistent',
+              content: {
+                title: (data.title as string) || notification.request.content.title || 'MYday',
+                body: (data.body as string) || notification.request.content.body || '',
+                sound: false,
+                priority: Notifications.AndroidNotificationPriority.HIGH,
+              },
+              trigger: null,
+            });
+
+            console.log('✅ Yeni bildirim gösterildi');
+
+            // FCM'in kendi bildirimini gösterme (biz zaten gösterdik)
+            return {
+              shouldShowAlert: false,
+              shouldPlaySound: false,
+              shouldSetBadge: false,
+            };
+          }
+
+          // Diğer bildirimler için normal göster
+          return {
+            shouldShowAlert: true,
+            shouldPlaySound: false,
+            shouldSetBadge: true,
+          };
+        },
       });
     }
   }, []);
