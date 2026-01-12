@@ -2,7 +2,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Platform } from 'react-native';
 import {
   useFonts,
   Inter_400Regular,
@@ -77,13 +77,23 @@ export default function RootLayout() {
     Poppins_700Bold,
   });
 
-  // Bildirim izinlerini iste
+  // Bildirim izinlerini iste ve channel oluştur
   useEffect(() => {
     if (!notificationInitialized.current) {
       notificationInitialized.current = true;
 
       // Bildirim izinlerini iste
       notificationService.requestPermissions().catch(console.error);
+
+      // Android 8+ için notification channel oluştur (ZORUNLU!)
+      if (Platform.OS === 'android') {
+        Notifications.setNotificationChannelAsync('myday-tasks', {
+          name: 'MYday Görevler',
+          importance: Notifications.AndroidImportance.HIGH,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: '#8B5CF6',
+        });
+      }
 
       // FCM zaten Android system notification gösteriyor (tag ile replace)
       // Expo'nun ekstra bildirim oluşturmasını engelle
