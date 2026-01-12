@@ -85,12 +85,13 @@ export default function RootLayout() {
       // Bildirim izinlerini iste
       notificationService.requestPermissions().catch(console.error);
 
-      // FCM bildirimleri geldiğinde göster (foreground'da da)
+      // FCM zaten Android system notification gösteriyor (tag ile replace)
+      // Expo'nun ekstra bildirim oluşturmasını engelle
       Notifications.setNotificationHandler({
         handleNotification: async () => ({
-          shouldShowAlert: true,
+          shouldShowAlert: false,
           shouldPlaySound: false,
-          shouldSetBadge: true,
+          shouldSetBadge: false,
         }),
       });
     }
