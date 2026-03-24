@@ -1,9 +1,9 @@
 const https = require('https');
 const fs = require('fs');
 
-// User ID ve Project ID
-const userId = 'f4ocg6ZtopVXJj55eO4HBF66qnq1';
-const projectId = 'myday-cc640';
+// User ID ve Project ID - set via GitHub Actions secrets/env
+const userId = process.env.FCM_TARGET_USER_ID || '';
+const projectId = process.env.FIREBASE_PROJECT_ID || '';
 
 console.log('🚀 FCM Data Payload Bildirimi başlatılıyor...');
 console.log('👤 User ID:', userId);

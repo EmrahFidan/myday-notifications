@@ -42,3 +42,7 @@ yarn-error.*
 
 # Firebase service account (NEVER commit these!)
 *firebase-adminsdk*.json
+
+# Firebase
+google-services.json
+GoogleService-Info.plist

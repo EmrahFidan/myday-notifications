@@ -23,4 +23,6 @@ jobs:
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           FCM_TOKEN: ${{ secrets.FCM_TOKEN }}
+          FCM_TARGET_USER_ID: ${{ secrets.FCM_TARGET_USER_ID }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
         run: node .github/scripts/send-fcm.js
